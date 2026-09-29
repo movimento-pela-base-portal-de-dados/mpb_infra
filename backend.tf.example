@@ -1,0 +1,9 @@
+terraform {
+  backend "s3" {
+    bucket       = "SUBSTITUIR_BUCKET_STATE"
+    key          = "mpb-infra/production/terraform.tfstate"
+    region       = "sa-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
