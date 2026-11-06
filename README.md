@@ -34,3 +34,10 @@ Uma EC2 executa Nginx, CKAN, PostgreSQL, Solr, Redis e DataPusher/XLoader via Do
 6. Aplicar somente após revisão: `terraform apply tfplan`.
 
 Nunca executar `terraform destroy` com as credenciais fornecidas ao projeto.
+
+## Contribuição e automação
+
+Consulte `CONTRIBUTING.md` para o fluxo baseado em Pull Request e
+`.github/BRANCH_PROTECTION.md` para a ruleset recomendada. O workflow de CI
+somente formata e valida a configuração offline; provisionamento permanece em
+um fluxo de CD separado e não está habilitado nesta etapa.
