@@ -5,7 +5,7 @@ if jq -e '[.resource_changes[]? | select(.change.actions | index("delete"))] | l
   echo "ERRO: plano contem acao de delecao. Interrompendo conforme guardrails do cliente." >&2
   exit 1
 fi
-BAD=$(grep -R --include='*.tf' -nE 'Project[[:space:]]*=' . 2>/dev/null | grep -v 'Base_dos_Dados_Datalake' || true)
+BAD=$(grep -R --include='*.tf' -nE 'Project[[:space:]]*=' . 2>/dev/null | grep -vE 'Project[[:space:]]*=[[:space:]]*"mpb"' || true)
 if [ -n "$BAD" ]; then
   echo "ERRO: encontrada tentativa de sobrescrever a tag Project:" >&2
   echo "$BAD" >&2

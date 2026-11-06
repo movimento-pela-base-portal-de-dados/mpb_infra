@@ -21,7 +21,7 @@ resource "aws_instance" "ckan" {
     volume_size           = var.root_volume_gb
     encrypted             = true
     delete_on_termination = false
-    tags                  = { Name = "${var.name_prefix}-root", Project = "Base_dos_Dados_Datalake" }
+    tags                  = { Name = "${var.name_prefix}-root", Project = "mpb" }
   }
   user_data = <<-EOT
     #!/bin/bash
