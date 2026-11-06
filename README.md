@@ -4,7 +4,7 @@ Infraestrutura como código do Portal de Dados do Movimento pela Base.
 
 ## Guardrails obrigatórios do cliente
 
-- Todo recurso tagueável deve nascer com `Project=Base_dos_Dados_Datalake`.
+- Todo recurso tagueável deve nascer com `Project=mpb`. A política do grupo de engenharia exige essa tag na EC2 para o Session Manager.
 - O provider AWS usa `default_tags`; não sobrescrever nem remover a tag `Project`.
 - O usuário de arquitetura não possui permissão de deleção nem de remoção de tags.
 - Exclusões exigem solicitação ao administrador informando tipo, nome/ID, região e motivo.
