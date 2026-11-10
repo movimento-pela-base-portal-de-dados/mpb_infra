@@ -3,7 +3,7 @@ variable "vpc_id" { type = string }
 variable "allowed_https_cidrs" { type = list(string) }
 resource "aws_security_group" "web" {
   name        = "${var.name_prefix}-web-sg"
-  description = "HTTP e HTTPS publicos; sem SSH, PostgreSQL, Redis ou Solr publicos"
+  description = "Entrada web do portal; sem SSH, PostgreSQL, Redis ou Solr publicos"
   vpc_id      = var.vpc_id
   ingress {
     description = "HTTPS"
