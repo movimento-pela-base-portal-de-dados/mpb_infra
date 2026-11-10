@@ -3,12 +3,19 @@ variable "vpc_id" { type = string }
 variable "allowed_https_cidrs" { type = list(string) }
 resource "aws_security_group" "web" {
   name        = "${var.name_prefix}-web-sg"
-  description = "HTTPS publico; sem SSH, PostgreSQL, Redis ou Solr publicos"
+  description = "Entrada web do portal; sem SSH, PostgreSQL, Redis ou Solr publicos"
   vpc_id      = var.vpc_id
   ingress {
     description = "HTTPS"
     from_port   = 443
     to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_https_cidrs
+  }
+  ingress {
+    description = "HTTP temporario: desafio Lets Encrypt e redirecionamento"
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = var.allowed_https_cidrs
   }

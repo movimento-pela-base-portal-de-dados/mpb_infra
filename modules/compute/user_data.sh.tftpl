@@ -1,0 +1,37 @@
+#!/bin/bash
+set -euxo pipefail
+
+dnf update -y
+dnf install -y docker git jq python3 amazon-cloudwatch-agent
+systemctl enable --now docker
+usermod -aG docker ec2-user
+
+plugins=/usr/local/lib/docker/cli-plugins
+mkdir -p "$plugins"
+curl -fsSL -o "$plugins/docker-compose" "https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-linux-x86_64"
+curl -fsSL -o "$plugins/docker-buildx" "https://github.com/docker/buildx/releases/download/${buildx_version}/buildx-${buildx_version}.linux-amd64"
+chmod +x "$plugins/docker-compose" "$plugins/docker-buildx"
+
+python3 -m venv /opt/certbot
+/opt/certbot/bin/pip install --upgrade pip certbot
+ln -sf /opt/certbot/bin/certbot /usr/bin/certbot
+mkdir -p /var/www/certbot
+
+if [ ! -d /opt/mpb_ckan/.git ]; then
+  git clone "${ckan_repository}" /opt/mpb_ckan
+fi
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'JSON'
+{
+  "metrics": {
+    "append_dimensions": { "InstanceId": "$${aws:InstanceId}" },
+    "aggregation_dimensions": [["InstanceId"], ["InstanceId", "path"]],
+    "metrics_collected": {
+      "mem": { "measurement": ["mem_used_percent"] },
+      "disk": { "measurement": ["used_percent"], "resources": ["/"] }
+    }
+  }
+}
+JSON
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
