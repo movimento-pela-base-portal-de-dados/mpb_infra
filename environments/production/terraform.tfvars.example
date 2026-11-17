@@ -1,13 +1,22 @@
-aws_region          = "sa-east-1"
-environment         = "production"
-name_prefix         = "mpb-portal"
-vpc_cidr            = "10.40.0.0/16"
-public_subnet_cidr  = "10.40.10.0/24"
-instance_type       = "t3.medium"
-root_volume_gb      = 100
+aws_region         = "sa-east-1"
+environment        = "production"
+name_prefix        = "mpb-portal"
+vpc_cidr           = "10.40.0.0/16"
+public_subnet_cidr = "10.40.10.0/24"
+instance_type      = "t3.medium"
+root_volume_gb     = 100
 
 # Nome globalmente único. Definir antes do primeiro plan.
 data_bucket_name = "SUBSTITUIR-mpb-portal-dados"
 
-# Portal público em HTTPS.
+# Domínio público do portal, sem protocolo.
+ckan_domain = "SUBSTITUIR.exemplo.org"
+
+ckan_parameters = {
+  NGINX_PORT_HOST                    = "80"
+  NGINX_SSLPORT_HOST                 = "443"
+  CKAN_SYSADMIN_EMAIL                = "SUBSTITUIR@exemplo.org"
+  CKANEXT__MPB__PIPELINE_USER__EMAIL = "SUBSTITUIR@exemplo.org"
+}
+
 allowed_https_cidrs = ["0.0.0.0/0"]

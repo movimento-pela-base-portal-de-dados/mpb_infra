@@ -1,0 +1,77 @@
+#!/bin/bash
+set -euxo pipefail
+
+retry() {
+  for attempt in 1 2 3 4 5; do
+    "$@" && return 0
+    sleep $((attempt * 10))
+  done
+  return 1
+}
+
+retry dnf update -y
+retry dnf install -y docker git jq python3 amazon-cloudwatch-agent
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'JSON'
+{
+  "metrics": {
+    "append_dimensions": { "InstanceId": "$${aws:InstanceId}" },
+    "aggregation_dimensions": [["InstanceId"], ["InstanceId", "path"]],
+    "metrics_collected": {
+      "mem": { "measurement": ["mem_used_percent"] },
+      "disk": { "measurement": ["used_percent"], "resources": ["/"] }
+    }
+  }
+}
+JSON
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+systemctl enable --now docker
+usermod -aG docker ec2-user
+
+plugins=/usr/local/lib/docker/cli-plugins
+mkdir -p "$plugins"
+curl -fsSL --retry 5 --retry-all-errors -o "$plugins/docker-compose" "https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-linux-x86_64"
+curl -fsSL --retry 5 --retry-all-errors -o "$plugins/docker-buildx" "https://github.com/docker/buildx/releases/download/${buildx_version}/buildx-${buildx_version}.linux-amd64"
+chmod +x "$plugins/docker-compose" "$plugins/docker-buildx"
+
+python3 -m venv /opt/certbot
+retry /opt/certbot/bin/pip install --upgrade pip certbot
+ln -sf /opt/certbot/bin/certbot /usr/bin/certbot
+mkdir -p /var/www/certbot /etc/letsencrypt/renewal-hooks/deploy
+
+cat > /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh <<'SH'
+#!/bin/sh
+docker ps -q -f label=com.docker.compose.service=nginx | xargs -r -I{} docker exec {} nginx -s reload
+SH
+chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+
+cat > /etc/systemd/system/certbot-renew.service <<'UNIT'
+[Unit]
+Description=Renovação dos certificados do Let's Encrypt
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/certbot renew -q
+UNIT
+cat > /etc/systemd/system/certbot-renew.timer <<'UNIT'
+[Unit]
+Description=Renovação dos certificados do Let's Encrypt duas vezes ao dia
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now certbot-renew.timer
+
+if [ ! -d /opt/mpb_ckan/.git ]; then
+  retry git clone "${ckan_repository}" /opt/mpb_ckan
+fi
+chown -R ec2-user:ec2-user /opt/mpb_ckan

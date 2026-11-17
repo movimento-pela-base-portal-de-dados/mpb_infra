@@ -36,4 +36,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 output "vpc_id" { value = aws_vpc.this.id }
-output "public_subnet_id" { value = aws_subnet.public.id }
+output "public_subnet_id" {
+  value      = aws_subnet.public.id
+  depends_on = [aws_route_table_association.public]
+}
