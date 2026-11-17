@@ -3,6 +3,7 @@ variable "instance_id" { type = string }
 variable "log_retention_days" { type = number }
 variable "usage_alarm_threshold" { type = number }
 variable "backup_alarm_hours" { type = number }
+variable "backup_alarm_enabled" { type = bool }
 resource "aws_cloudwatch_log_group" "ckan" {
   for_each          = toset(["nginx", "ckan"])
   name              = "/mpb/ckan/${each.key}"
@@ -63,6 +64,7 @@ resource "aws_cloudwatch_metric_alarm" "disk" {
   tags                = { Name = "${var.name_prefix}-disk" }
 }
 resource "aws_cloudwatch_metric_alarm" "backup" {
+  count               = var.backup_alarm_enabled ? 1 : 0
   alarm_name          = "${var.name_prefix}-backup"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.backup_alarm_hours

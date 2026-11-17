@@ -48,4 +48,5 @@ module "monitoring" {
   log_retention_days    = var.log_retention_days
   usage_alarm_threshold = var.usage_alarm_threshold
   backup_alarm_hours    = var.backup_alarm_hours
+  backup_alarm_enabled  = var.backup_alarm_enabled
 }

@@ -91,6 +91,11 @@ variable "usage_alarm_threshold" {
   type        = number
   default     = 80
 }
+variable "backup_alarm_enabled" {
+  description = "Cria o alarme de backup; ligar quando a rotina de backup publicar MPB/BackupSuccess."
+  type        = bool
+  default     = false
+}
 variable "backup_alarm_hours" {
   description = "Horas sem backup concluído até o alarme."
   type        = number
